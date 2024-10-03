@@ -128,6 +128,9 @@ def run(cli_args) -> None:
                 f.write(
                     f"Getting counts of enabled preference '{pref}' across all wikis\n"
                 )
+        if cli_args.top:
+            wiki_count = wiki_count[: cli_args.top]
+            print(f"Top {cli_args.top} wikis:")
         for wiki, count in wiki_count:
             print(f"{wiki}: {count}")
             # Append to a log file
@@ -168,6 +171,12 @@ if __name__ == "__main__":
         help="Check all wikis",
     )
     parser.add_argument(
+        "--top",
+        action="store",
+        help="Only list the top x wikis by enabled preference",
+        type=int,
+    )
+    parser.add_argument(
         "--option-file",
         action="store",
         default="/etc/mysql/conf.d/analytics-research-client.cnf",
@@ -205,5 +214,8 @@ if __name__ == "__main__":
         exit(1)
     if not args.wiki and not args.all:
         print("You must specify a wiki or use --all")
+        exit(1)
+    if args.top and not args.all:
+        print("You can only use --top with --all")
         exit(1)
     run(args)
