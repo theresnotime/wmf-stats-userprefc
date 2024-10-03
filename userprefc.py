@@ -5,6 +5,7 @@ import subprocess
 import time
 from operator import itemgetter
 
+VERSION = "1.0"
 JUST_TESTING = False
 OPTION_FILE = "/etc/mysql/conf.d/analytics-research-client.cnf"
 
@@ -146,7 +147,10 @@ def run(cli_args) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="TODO")
+    print(f"userprefc.py v{VERSION}\nMade with ♥ by TheresNoTime", end="\n\n")
+    parser = argparse.ArgumentParser(
+        description="Get user preference counts per wiki (or across all wikis)"
+    )
     parser.add_argument(
         "--no-log",
         action="store_true",
@@ -201,9 +205,17 @@ if __name__ == "__main__":
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose logging"
     )
+    parser.add_argument(
+        "--info", action="store_true", help="Get info/where to report bugs/etc."
+    )
     args = parser.parse_args()
     OPTION_FILE = args.option_file
     JUST_TESTING = args.just_testing
+    if args.info:
+        print(
+            f"Yell at: https://wikitech.wikimedia.org/wiki/User:TheresNoTime\nSource/bugs/etc: https://github.com/theresnotime/wmf-stats-userprefc"
+        )
+        exit(0)
     if args.list_wikis:
         wikis = get_open_wikis_list()
         for wiki in wikis:
