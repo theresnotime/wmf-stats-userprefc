@@ -65,9 +65,7 @@ def get_target(wiki: str) -> tuple:
         raise Exception(f"Error getting target for {wiki}")
 
 
-def get_count(
-    host: str, port: str, wiki: str, pref: str, not_null: bool = False
-) -> int:
+def get_count(host: str, port: str, wiki: str, pref: str, check_value: str) -> int:
     try:
         cnx = mysql.connector.connect(
             host=host,
@@ -77,13 +75,13 @@ def get_count(
         )
         cursor = cnx.cursor()
 
-        if not_null:
+        if check_value == "not_null":
             cursor.execute(
                 f"select count(up_user) from user_properties where up_property = '{pref}' and up_value is not null;"
             )
         else:
             cursor.execute(
-                f"select count(up_user) from user_properties where up_property = '{pref}' and up_value = 1;"
+                f"select count(up_user) from user_properties where up_property = '{pref}' and up_value = '{check_value}';"
             )
 
         result = cursor.fetchone()
@@ -98,12 +96,12 @@ def run(cli_args) -> None:
     pref = cli_args.pref
     verbose = cli_args.verbose
     no_log = cli_args.no_log
-    not_null = cli_args.not_null
+    check_value = cli_args.value
 
-    if not_null:
+    if check_value == "not_null":
         print(f"Getting counts of where preference '{pref}' is not null", end="")
     else:
-        print(f"Getting counts of enabled preference '{pref}'", end="")
+        print(f"Getting counts of where preference '{pref}' = '{check_value}'", end="")
     if cli_args.all:
         print(" across all wikis")
         print("(this may take a moment — please wait...)")
@@ -125,7 +123,7 @@ def run(cli_args) -> None:
         for wiki in open_wikis:
             try:
                 host, port = get_target(wiki)
-                count = get_count(host, port, wiki, pref, not_null)
+                count = get_count(host, port, wiki, pref, check_value)
             except:
                 continue
             if verbose:
@@ -152,7 +150,7 @@ def run(cli_args) -> None:
         wiki = cli_args.wiki
         print(f" on {wiki}")
         host, port = get_target(wiki)
-        count = get_count(host, port, wiki, pref, not_null)
+        count = get_count(host, port, wiki, pref, check_value)
         print(f"{wiki}: {count}")
 
 
@@ -173,9 +171,10 @@ if __name__ == "__main__":
         help="User preference to check",
     )
     parser.add_argument(
-        "--not-null",
-        action="store_true",
-        help="Just check if the preference is not null",
+        "--value",
+        action="store",
+        default="1",
+        help="Check for a given value (or enter 'not_null' to check for not null) (default: 1)",
     )
     parser.add_argument(
         "-w",
