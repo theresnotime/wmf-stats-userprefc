@@ -116,8 +116,7 @@ def run(cli_args) -> None:
                 "metawiki",
                 "zhwiki",
                 "bewikibooks",
-                "labswiki",
-                "labtestwiki",
+                "testwiki",
             ]
         else:
             open_wikis = get_wikis_list(cli_args.wiki_list)
