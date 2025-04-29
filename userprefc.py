@@ -65,7 +65,9 @@ def get_target(wiki: str) -> tuple:
         raise Exception(f"Error getting target for {wiki}")
 
 
-def get_count(host: str, port: str, wiki: str, pref: str) -> int:
+def get_count(
+    host: str, port: str, wiki: str, pref: str, not_null: bool = False
+) -> int:
     try:
         cnx = mysql.connector.connect(
             host=host,
@@ -75,9 +77,14 @@ def get_count(host: str, port: str, wiki: str, pref: str) -> int:
         )
         cursor = cnx.cursor()
 
-        cursor.execute(
-            f"select count(up_user) from user_properties where up_property = '{pref}' and up_value = 1;"
-        )
+        if not_null:
+            cursor.execute(
+                f"select count(up_user) from user_properties where up_property = '{pref}' and up_value is not null;"
+            )
+        else:
+            cursor.execute(
+                f"select count(up_user) from user_properties where up_property = '{pref}' and up_value = 1;"
+            )
 
         result = cursor.fetchone()
         cnx.close()
@@ -91,8 +98,12 @@ def run(cli_args) -> None:
     pref = cli_args.pref
     verbose = cli_args.verbose
     no_log = cli_args.no_log
+    not_null = cli_args.not_null
 
-    print(f"Getting counts of enabled preference '{pref}'", end="")
+    if not_null:
+        print(f"Getting counts of where preference '{pref}' is not null", end="")
+    else:
+        print(f"Getting counts of enabled preference '{pref}'", end="")
     if cli_args.all:
         print(" across all wikis")
         print("(this may take a moment — please wait...)")
@@ -115,7 +126,7 @@ def run(cli_args) -> None:
         for wiki in open_wikis:
             try:
                 host, port = get_target(wiki)
-                count = get_count(host, port, wiki, pref)
+                count = get_count(host, port, wiki, pref, not_null)
             except:
                 continue
             if verbose:
@@ -125,7 +136,7 @@ def run(cli_args) -> None:
             time.sleep(0.1)
         wiki_count = sorted(wiki_count.items(), key=itemgetter(1), reverse=True)
         if not no_log:
-            with open(f"userprefc_all_wikis.txt", "a") as f:
+            with open("userprefc_all_wikis.txt", "a") as f:
                 f.write(
                     f"Getting counts of enabled preference '{pref}' across all wikis\n"
                 )
@@ -136,13 +147,13 @@ def run(cli_args) -> None:
             print(f"{wiki}: {count}")
             # Append to a log file
             if not no_log:
-                with open(f"userprefc_all_wikis.txt", "a") as f:
+                with open("userprefc_all_wikis.txt", "a") as f:
                     f.write(f"{wiki}: {count}\n")
     else:
         wiki = cli_args.wiki
         print(f" on {wiki}")
         host, port = get_target(wiki)
-        count = get_count(host, port, wiki, pref)
+        count = get_count(host, port, wiki, pref, not_null)
         print(f"{wiki}: {count}")
 
 
@@ -161,6 +172,11 @@ if __name__ == "__main__":
         "--pref",
         action="store",
         help="User preference to check",
+    )
+    parser.add_argument(
+        "--not-null",
+        action="store",
+        help="Just check if the preference is not null",
     )
     parser.add_argument(
         "-w",
@@ -213,7 +229,7 @@ if __name__ == "__main__":
     JUST_TESTING = args.just_testing
     if args.info:
         print(
-            f"Yell at: https://wikitech.wikimedia.org/wiki/User:TheresNoTime\nSource/bugs/etc: https://github.com/theresnotime/wmf-stats-userprefc"
+            "Yell at: https://wikitech.wikimedia.org/wiki/User:TheresNoTime\nSource/bugs/etc: https://github.com/theresnotime/wmf-stats-userprefc"
         )
         exit(0)
     if args.list_wikis:
