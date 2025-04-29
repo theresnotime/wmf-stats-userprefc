@@ -174,7 +174,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--not-null",
-        action="store",
+        action="store_true",
         help="Just check if the preference is not null",
     )
     parser.add_argument(
