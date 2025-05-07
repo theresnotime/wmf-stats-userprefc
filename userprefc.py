@@ -38,6 +38,11 @@ def get_wikis_list(wiki_list: str) -> list:
     try:
         if wiki_list == "open":
             return get_open_wikis_list()
+        elif wiki_list.endswith(".txt"):
+            # wiki_list is a txt file with a list of wikis
+            with open(wiki_list, "r") as f:
+                list_of_wikis = f.read().splitlines()
+                return list_of_wikis
         else:
             list_of_wikis = requests.get(wiki_list).text.split("\n")
 
@@ -103,7 +108,7 @@ def run(cli_args) -> None:
     else:
         print(f"Getting counts of where preference '{pref}' = '{check_value}'", end="")
     if cli_args.all:
-        print(" across all wikis")
+        print(" across wikis")
         print("(this may take a moment — please wait...)")
         if JUST_TESTING:
             open_wikis = [
