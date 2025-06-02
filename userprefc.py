@@ -124,6 +124,7 @@ def run(cli_args) -> None:
         else:
             open_wikis = get_wikis_list(cli_args.wiki_list)
         wiki_count = {}
+        total_count = 0
 
         for wiki in open_wikis:
             try:
@@ -147,10 +148,14 @@ def run(cli_args) -> None:
             print(f"Top {cli_args.top} wikis:")
         for wiki, count in wiki_count:
             print(f"{wiki}: {count}")
+            # Add to total count
+            total_count += count
             # Append to a log file
             if not no_log:
                 with open("userprefc_all_wikis.txt", "a") as f:
                     f.write(f"{wiki}: {count}\n")
+        if cli_args.total_count:
+            print(f"Total count: {total_count}")
     else:
         wiki = cli_args.wiki
         print(f" on {wiki}")
@@ -220,6 +225,11 @@ if __name__ == "__main__":
         "--list-wikis",
         action="store_true",
         help="Return a list of all the open (non-private) wikis",
+    )
+    parser.add_argument(
+        "--total-count",
+        action="store_true",
+        help="Also return the total count (i.e. the sum of all counts across wikis)",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose logging"
